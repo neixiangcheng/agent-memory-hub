@@ -104,3 +104,7 @@ non-interactive agent shell hangs on `git-credential-manager` with no browser wi
 first push yourself in a normal terminal — GCM opens the browser once and stores the credential for later
 pushes.
 
+Telling detail: `%LOCALAPPDATA%\GitCredentialManager` does not exist, so no GCM flow has ever completed on
+this machine. If you are debugging a similar hang, check that path first — a missing log directory means the
+helper never got past its own startup, which points at "no console" rather than "wrong password".
+
