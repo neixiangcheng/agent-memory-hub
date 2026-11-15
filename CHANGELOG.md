@@ -25,12 +25,19 @@ First version that is meant to be installed by someone who is not the author.
 
 ### Fixed
 
+- **zod 3 → 4** (`^4.6.7`): zod < 4.6.6 could exhaust memory while validating oversized constrained
+  collections ([GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)). The MCP SDK
+  accepts `^3.25 || ^4.0`, and the four tools were re-verified end to end against zod 4: schemas still
+  render as `object` with the expected properties, `memory_write`/`memory_search` still round-trip, and
+  out-of-range arguments are still rejected with `-32602`. `npm audit` is clean afterwards.
 - **Windows: registering an MCP server failed** with `spawnSync claude ENOENT`, and the `cmd /c`
   workaround corrupted the arguments (`command` became `"D:\Program`, `args` became
   `Files\nodejs\node.exe"`). The CLI now reads the npm `.cmd` shim and starts what it starts — the
   `.exe` (Claude Code) or `node` plus the `.js` entry (Codex) — so no shell quoting is involved.
 - **Windows: project scope never matched** in the dsh plugin; a POSIX-only test hid it. `selectEntries`
   now normalises trailing separators, so a drive root or a trailing slash behaves.
+- **CI: `pack-smoke` failed on Linux.** `npm-cli.js` lives in `<node>/node_modules/npm/bin` on Windows
+  and `<node>/../lib/node_modules/npm/bin` elsewhere; the Windows-only path made both ubuntu jobs red.
 - Markdown links in memory indexes (`- [Title](file.md) — note`) are reduced to their title on import.
 - `defaultServerPath()` and the dsh tools' CLI lookup resolve to `dist/` when running from a built
   package and to `src/` in a checkout.
