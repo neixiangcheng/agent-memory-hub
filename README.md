@@ -6,6 +6,7 @@ Claude Code, Codex, Cursor, Qoder, WorkBuddy and DeepSeek Harness each keep thei
 facts — and none of them can see the others'. This gives them a shared store, a shared MCP server, and
 a shared convention for where facts go, so a preference you told one agent is available to the next one.
 
+[![ci](https://github.com/neixiangcheng/agent-memory-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/neixiangcheng/agent-memory-hub/actions/workflows/ci.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![node](https://img.shields.io/badge/node-%E2%89%A522.19-brightgreen.svg)](package.json)
 

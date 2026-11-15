@@ -6,6 +6,7 @@ Claude Code、Codex、Cursor、Qoder、WorkBuddy、DeepSeek Harness 各自攒一
 这个项目给它们一份共享存储、一个共享 MCP server、一套"事实往哪写"的约定：你对一个 agent 说过的偏好，
 下一个 agent 开箱就知道。
 
+[![ci](https://github.com/neixiangcheng/agent-memory-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/neixiangcheng/agent-memory-hub/actions/workflows/ci.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ![只读浏览站点](https://raw.githubusercontent.com/neixiangcheng/agent-memory-hub/main/docs/screenshots/viewer-zh.png)
