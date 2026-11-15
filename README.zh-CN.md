@@ -147,6 +147,18 @@ dsh --profile mem --patch /path/to/agent-memory-hub/plugins/dsh/cordis.tools.pat
 
 默认绑 `127.0.0.1`。`--host 0.0.0.0` 是给局域网里手机看的，内容是记忆原文，自己掂量。
 
+### 让它常驻（Windows）
+
+```powershell
+powershell -File scripts\web-daemon.ps1 status      # 在跑吗？哪个端口？日志在哪
+powershell -File scripts\web-daemon.ps1 install     # 现在起来，以后每次登录也起来
+powershell -File scripts\web-daemon.ps1 start|stop  # 临时控制
+powershell -File scripts\web-daemon.ps1 uninstall   # 删掉自启动项
+```
+
+`install` 只写一条当前用户的 `HKCU\…\Run` 项——不要管理员权限、不装服务、你没敲这条命令之前什么都不会发生；
+输出追加到 `~/.agent-memory-hub/web.log`。macOS/Linux 上用 launchd plist 或 systemd user unit 包一层 `amh web` 即可。
+
 ## 安全模型（说实话）
 
 - 存储是你家目录里的明文。没有加密、没有同步、不上云。

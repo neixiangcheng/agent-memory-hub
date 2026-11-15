@@ -154,6 +154,19 @@ fact another agent writes shows up while you are looking at it.
 It binds `127.0.0.1` by default. `--host 0.0.0.0` is there for phones on your LAN; the content is your
 raw memory text, so think before exposing it.
 
+### Keeping it running (Windows)
+
+```powershell
+powershell -File scripts\web-daemon.ps1 status      # running? which port? where is the log?
+powershell -File scripts\web-daemon.ps1 install     # start now, and again at every sign-in
+powershell -File scripts\web-daemon.ps1 start|stop  # one-off control
+powershell -File scripts\web-daemon.ps1 uninstall   # remove the sign-in entry
+```
+
+`install` writes a single per-user `HKCU\…\Run` entry (no admin rights, no service, nothing before you
+ask) and appends output to `~/.agent-memory-hub/web.log`. On macOS/Linux, a `launchd` plist or a systemd
+user unit wrapping `amh web` does the same job.
+
 ## Security model, honestly
 
 - The store is plaintext in your home directory. No encryption, no sync, no cloud.
