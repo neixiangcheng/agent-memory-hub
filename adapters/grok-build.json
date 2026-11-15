@@ -1,0 +1,16 @@
+{
+  "id": "grok-build",
+  "name": "Grok Build (xAI)",
+  "detect": ["~/.grok"],
+  "targets": [
+    { "scope": "project", "path": "AGENTS.md" }
+  ],
+  "import": [],
+  "mcp": { "mode": "command", "argv": ["grok", "mcp", "add", "agent-memory-hub", "--", "{node}", "{server}"] },
+  "verify": [
+    "NOT INSTALLED where this adapter was written: ~/.grok is missing and there is no grok executable in PATH, so detect reports [ ] and nothing could be verified. Re-run `amh detect` after installing it.",
+    "No confirmed user-level instruction file, so global facts are folded into the project AGENTS.md block.",
+    "`grok mcp add` argument syntax still unverified; run `grok mcp add --help` once it is installed. Alternative: [mcp_servers.agent-memory-hub] in ~/.grok/config.toml.",
+    "Its experimental /memory store location unknown; run `grok inspect` to look."
+  ]
+}

@@ -1,0 +1,17 @@
+# dependencies and build output
+node_modules/
+dist/
+
+# the store itself, if you ever point AMH_HOME at the repo
+.agent-memory-hub/
+
+# backups and temp files written next to agent configs
+*.amh-bak
+*.amh-tmp
+
+# local noise
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

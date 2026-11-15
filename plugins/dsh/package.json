@@ -1,0 +1,20 @@
+{
+  "name": "dsh-amh-memory",
+  "version": "0.2.0",
+  "description": "DeepSeek Harness bundle: injects agent-memory-hub memories into the model context; optional memory_write/memory_search tools",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./tool": "./tool.js",
+    "./package.json": "./package.json"
+  },
+  "files": ["index.js", "tool.js", "tools-def.js", "cordis.patch.yml", "cordis.tools.patch.yml"],
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "*"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-tools": { "optional": true }
+  },
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } }
+}

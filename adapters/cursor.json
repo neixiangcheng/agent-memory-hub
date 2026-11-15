@@ -1,0 +1,15 @@
+{
+  "id": "cursor",
+  "name": "Cursor",
+  "detect": ["~/.cursor"],
+  "targets": [
+    { "scope": "project", "path": "AGENTS.md" }
+  ],
+  "import": [],
+  "mcp": { "mode": "json", "file": "~/.cursor/mcp.json", "key": "mcpServers" },
+  "verify": [
+    "Verified (Cursor 3.30.14): ~/.cursor exists and holds no mcp.json yet, so the json mode creates it on --apply; the file is the documented global MCP store (<project>/.cursor/mcp.json stays the per-project one).",
+    "Cursor's global user rules live in its settings UI, not a file, so global facts are folded into the project AGENTS.md block.",
+    "Its native agent memory is ~/.cursor/agent-memory/MEMORY.md (index plus a fuse:index block) - an obvious import source, not wired up yet."
+  ]
+}

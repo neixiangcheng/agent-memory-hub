@@ -1,0 +1,19 @@
+{
+  "id": "workbuddy",
+  "name": "WorkBuddy",
+  "detect": ["~/.workbuddy"],
+  "targets": [
+    { "scope": "project", "path": ".workbuddy/memory/MEMORY.md" }
+  ],
+  "import": [],
+  "mcp": {
+    "mode": "manual",
+    "note": "WorkBuddy keeps MCP servers in its own store (workbuddy.db plus the mcp-tool-list.json / mcp-approvals.json caches), not in a JSON file: add agent-memory-hub from its MCP or connector manager, then trust it there."
+  },
+  "verify": [
+    "Verified: ~/.workbuddy/memory/ holds per-user profile files named <uuid>_memory.md (a Memory Block plus a RAW_JSON_START block), not MEMORY.md or CODEBUDDY.md, so the project-level target above only applies if WorkBuddy is used inside a repo.",
+    "There is no .mcp.json or mcp.json under ~/.workbuddy - only mcp-tool-list.json (a tool cache) and mcp-approvals.json - so the JSON registration mode does not apply and MCP is set up in the UI instead.",
+    "The native profile files carry a UUID name, so they cannot be registered as a static import source: run `amh import --file ~/.workbuddy/memory/<uuid>_memory.md --global` once if you want those facts.",
+    "Keep the managed block short: its own docs advise ~10-20 memory items."
+  ]
+}

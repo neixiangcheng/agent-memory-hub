@@ -1,0 +1,15 @@
+{
+  "id": "claude-code",
+  "name": "Claude Code",
+  "detect": ["~/.claude"],
+  "targets": [
+    { "scope": "global", "path": "~/.claude/CLAUDE.md" },
+    { "scope": "project", "path": "CLAUDE.md", "skip_if_contains": "@AGENTS.md" }
+  ],
+  "import": [],
+  "mcp": { "mode": "command", "argv": ["claude", "mcp", "add", "--scope", "user", "agent-memory-hub", "--", "{node}", "{server}"] },
+  "verify": [
+    "Verified: `claude mcp add [options] <name> <commandOrUrl> [args...]` with `-s, --scope (local|user|project)`, and `claude mcp list` was empty before install, so the argv above is accepted as-is.",
+    "Claude Code has no separate auto-memory file: the /memory command edits ~/.claude/CLAUDE.md (user) and the project CLAUDE.md, which are already the sync targets, so nothing is registered as an import source."
+  ]
+}

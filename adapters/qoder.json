@@ -1,0 +1,21 @@
+{
+  "id": "qoder",
+  "name": "Qoder (IDE)",
+  "detect": ["~/.qoder", "~/.qoder-cn", "~/.qoder.json"],
+  "targets": [
+    { "scope": "project", "path": "AGENTS.md" }
+  ],
+  "import": [
+    { "scope": "global", "path": "~/.qoder-cn/memory/MEMORY.md" },
+    { "scope": "global", "path": "~/.qoder/memory/MEMORY.md" }
+  ],
+  "mcp": {
+    "mode": "manual",
+    "note": "No qodercli/qoder executable was found and no MCP JSON under ~/.qoder or ~/.qoder-cn: register the server by hand in Qoder's MCP settings with command <node> and args <this repo>/src/mcp-server.ts."
+  },
+  "verify": [
+    "Verified: Qoder is installed as an IDE only (~/.qoder and the China build ~/.qoder-cn; neither qodercli nor qoder is in PATH), so the old `qodercli mcp add` argv could never have run.",
+    "Its native memory is ~/.qoder-cn/memory/*.md, where MEMORY.md is an index of bullet links to per-topic files; MEMORY.md is registered above as the import source (both IDE flavours listed, missing ones are skipped).",
+    "No user-level instruction file was confirmed, so global facts are folded into the project AGENTS.md block instead of a ~/.qoder/AGENTS.md that may not be read."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "codex",
+  "name": "Codex CLI",
+  "detect": ["~/.codex"],
+  "targets": [
+    { "scope": "global", "path": "~/.codex/AGENTS.md" },
+    { "scope": "project", "path": "AGENTS.md" }
+  ],
+  "import": [
+    { "scope": "global", "path": "~/.codex/memories_v2/memory_summary.md", "mode": "prose" }
+  ],
+  "mcp": { "mode": "command", "argv": ["codex", "mcp", "add", "agent-memory-hub", "--", "{node}", "{server}"] },
+  "verify": [
+    "Verified: `codex mcp add [OPTIONS] <NAME> (--url <URL> | -- <COMMAND>...)` exists, so the toml mode is not needed - the command itself writes the [mcp_servers] entry in ~/.codex/config.toml. `codex mcp list` already shows agent-hud / codex_app / cua_repl / node_repl, so the store is live.",
+    "Codex's own memory is not a Markdown file at the top level: ~/.codex/memories_v2/memory_summary.md holds the profile/preferences/tips prose (imported above with mode: prose), while memories_v2_1.sqlite (stage1_outputs.raw_memory / rollout_summary) and memories_v2/rollout_summaries/*.md hold per-thread task logs. raw_memory was empty where this was written and rollout_summary is a task narrative ('the user asked to delete a comment'), not a durable fact, so it is deliberately NOT imported - it would eat the 25-entry injection budget. The SQLite reader is available (`amh import --sqlite DB --sql ... --column ...`) if you ever want it."
+  ]
+}

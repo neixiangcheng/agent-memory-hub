@@ -1,0 +1,22 @@
+{
+  "id": "dsh",
+  "name": "DeepSeek Harness (dsh)",
+  "kind": "plugin",
+  "detect": [
+    "~/.dsh"
+  ],
+  "targets": [],
+  "import": [],
+  "mcp": {
+    "mode": "manual",
+    "note": "Install the bundle instead of an MCP entry: dsh plugin --profile <name> add <this repo>/plugins/dsh. Two traps: the new dependency is named after the path segment (so .../plugins/dsh becomes a dependency called \"dsh\", which dsh then fails to resolve as a bundle - fix the key to dsh-amh-memory and run `dsh plugin --profile <name> install`), and the add does not append the package to dsh.profile.bundles, so add \"dsh-amh-memory\" there yourself. Then: dsh --profile <name> --dump-config should show a dsh-amh-memory layer. Never delete profiles/<name>/node_modules/<pkg> with Remove-Item -Recurse: it is a junction and recursion wipes this repo's plugins/dsh (use cmd /c rmdir). Optional write/search tools: add --patch <this repo>/plugins/dsh/cordis.tools.patch.yml"
+  },
+  "verify": [
+    "Verified: DSH_HOME is honoured and ~/.dsh exists in a default install, so the detect path is right (a copy of the tree elsewhere is ignored while DSH_HOME is set). The plugin reads the store from AMH_HOME, else $AMH_USER_HOME/.agent-memory-hub, else ~/.agent-memory-hub.",
+    "Verified end to end: a profile with @deepseek-ai/dsh-base + @deepseek-ai/dsh-headless + dsh-amh-memory mounts the amh-memory row, and a headless run answered with the injected bullets, including a memory text containing {{not_a_var}} (so interpolate: false holds). Ancestor project scopes matched from a subdirectory cwd as well.",
+    "The write/search tools were exercised through --patch (memory_search returned real rows, memory_write saved one), but nothing binds them to an approval policy: in a headless session the write went through unattended. Keep them for attended sessions.",
+    "`dsh plugin add` warns that the linked package's peer @deepseek-ai/dsh-tools@* does not resolve from this repo's node_modules. Set AMH_CLI if the plugin was not installed by link.",
+    "Cwd comes from context.agent.session.header.cwd (seen in a community tutorial, not in the official docs); falls back to the process cwd - both produced the same path in the headless test, so the fallback itself is still unverified.",
+    "Session logs: sessions/<workspace>/<id>/session.jsonl.zst under dsh's data dir (zstd JSONL, preview format); not parsed yet."
+  ]
+}
