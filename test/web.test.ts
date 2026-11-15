@@ -77,6 +77,33 @@ test("memory added after start shows up without a restart", async () => {
   assert.ok(data.entries.some((e) => e.sources.includes("dsh")));
 });
 
+test("native-memory tab: lists agent files and serves one body", async () => {
+  const list = (await (await fetch(web.url + "api/sources")).json()) as {
+    groups: { id: string; name: string; files: { index: number; path: string; exists: boolean; real?: string }[] }[];
+    adapters: { id: string; installed: boolean }[];
+  };
+  assert.ok(list.adapters.length >= 7, "every adapter is reported");
+  const all = list.groups.flatMap((g) => g.files);
+  assert.ok(all.length >= 3, "fixed-name native files are listed even when absent");
+  assert.ok(
+    all.every((f) => typeof f.index === "number" && !("real" in f)),
+    "absolute paths stay server-side",
+  );
+
+  const readable = all.find((f) => f.exists);
+  if (readable) {
+    const doc = (await (await fetch(web.url + "api/source?i=" + readable.index)).json()) as {
+      text: string;
+      real?: string;
+    };
+    assert.equal(typeof doc.text, "string");
+    assert.ok(!("real" in doc));
+  }
+
+  assert.equal((await fetch(web.url + "api/source?i=99999")).status, 404, "out-of-range index");
+  assert.equal((await fetch(web.url + "api/source?i=-1")).status, 400, "negative index");
+});
+
 test.after(async () => {
   await web.close();
   await web.close().catch(() => {});

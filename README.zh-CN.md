@@ -141,9 +141,19 @@ dsh --profile mem --patch /path/to/agent-memory-hub/plugins/dsh/cordis.tools.pat
 
 ## 浏览站点
 
-`amh web` 只提供一个页面和三个 GET 接口（`/`、`/api/memories`、`/api/health`），其它方法返回 405。
-搜索是空格分词 + 中文双字，过滤器覆盖作用域/来源/状态，墓碑显示成虚线卡片；每 5 秒自动刷新——因为
-存储是追加式的，别的 agent 刚写进来的事实你盯着页面就能看到。
+`amh web` 只提供一个页面和几个 GET 接口（`/`、`/api/memories`、`/api/sources`、`/api/source`、
+`/api/health`），其它方法返回 405。搜索是空格分词 + 中文双字，过滤器覆盖作用域/来源/状态，墓碑显示成
+虚线卡片；每 5 秒自动刷新——因为存储是追加式的，别的 agent 刚写进来的事实你盯着页面就能看到。
+
+两个页签：
+
+- **共享库**：合并后的事实，就是上面那些。
+- **各 agent 原生记忆**：直接读磁盘上每个 agent 自己的文件——`~/.claude/CLAUDE.md`、
+  `~/.codex/memories_v2/memory_summary.md`、`~/.cursor/agent-memory/MEMORY.md`、
+  `~/.qoder-cn/memory/*.md`、`~/.workbuddy/memory/*.md`，以及项目里的 `AGENTS.md`。不存在的文件灰着
+  列出来而不是隐藏，你能看到某个 agent *会*读到什么。点文件名读内容，超过 256 KB 截断。服务端把请求映射到
+  它自己那份列表（`/api/source?i=N`），客户端传的路径永远不会被打开；绝对路径也从 JSON 里剥掉，浏览器只看得到
+  `~/…` 形式。
 
 默认绑 `127.0.0.1`。`--host 0.0.0.0` 是给局域网里手机看的，内容是记忆原文，自己掂量。
 

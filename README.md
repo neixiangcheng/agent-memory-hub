@@ -146,10 +146,21 @@ dsh --profile mem --patch /path/to/agent-memory-hub/plugins/dsh/cordis.tools.pat
 
 ## The viewer
 
-`amh web` serves one page and three GET endpoints (`/`, `/api/memories`, `/api/health`); anything else
-gets a 405. Search is space-separated terms with CJK bigrams, filters cover scope / source / status,
-tombstones are shown as dashed cards, and it refreshes every 5s because the store is append-only — a
-fact another agent writes shows up while you are looking at it.
+`amh web` serves one page and a handful of GET endpoints (`/`, `/api/memories`, `/api/sources`,
+`/api/source`, `/api/health`); anything else gets a 405. Search is space-separated terms with CJK
+bigrams, filters cover scope / source / status, tombstones are shown as dashed cards, and it refreshes
+every 5s because the store is append-only — a fact another agent writes shows up while you are looking.
+
+Two tabs:
+
+- **Shared store** — the merged facts, as above.
+- **Agent native memory** — every agent's own file, read straight off disk: `~/.claude/CLAUDE.md`,
+  `~/.codex/memories_v2/memory_summary.md`, `~/.cursor/agent-memory/MEMORY.md`,
+  `~/.qoder-cn/memory/*.md`, `~/.workbuddy/memory/*.md`, plus the project `AGENTS.md`. Files that do not
+  exist are listed greyed out rather than hidden, so you can see what an agent *would* read. Click a name
+  to read it; content over 256 KB is truncated. The server maps the request onto its own list
+  (`/api/source?i=N`), so no client-supplied path is ever opened, and absolute paths are stripped from the
+  JSON — the browser only ever sees the `~/…` form.
 
 It binds `127.0.0.1` by default. `--host 0.0.0.0` is there for phones on your LAN; the content is your
 raw memory text, so think before exposing it.

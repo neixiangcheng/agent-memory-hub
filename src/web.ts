@@ -3,9 +3,12 @@
 // the store only ever grows through `amh add` / `memory_write`.
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { dirname } from "node:path";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { Store } from "./store.ts";
 import type { MemoryEntry } from "./store.ts";
-import { userHome } from "./paths.ts";
+import { expand, userHome } from "./paths.ts";
+import { loadAdapters } from "./adapters.ts";
 
 export interface WebOptions {
   port?: number;
@@ -42,6 +45,106 @@ function tilde(p: string): string {
   const flat = p.replace(/[\\/]+/g, "/");
   const home = userHome().replace(/[\\/]+/g, "/").replace(/\/$/, "");
   return home && flat.toLowerCase().startsWith(home.toLowerCase()) ? "~" + flat.slice(home.length) : flat;
+}
+
+// ---------- 原生记忆源 ----------
+
+export interface SourceFile {
+  index: number;
+  label: string;
+  path: string;
+  exists: boolean;
+  bytes: number;
+  mtime: string | null;
+  /** absolute path, kept server-side only (stripped before the JSON response) */
+  real?: string;
+}
+
+export interface SourceGroup {
+  id: string;
+  name: string;
+  files: SourceFile[];
+}
+
+/**
+ * Where each agent keeps its OWN memory, independent of the shared store. The import entries in
+ * `adapters/*.json` cover the wired-up ones; the list below adds the files those adapters cannot
+ * register (fixed names only in the UI, or a UUID-named profile) so the viewer can still show them.
+ */
+const NATIVE: { id: string; name: string; files?: string[]; dirs?: string[] }[] = [
+  { id: "claude-code", name: "Claude Code", files: ["~/.claude/CLAUDE.md", "CLAUDE.md"] },
+  {
+    id: "codex",
+    name: "Codex CLI",
+    files: ["~/.codex/memories_v2/memory_summary.md", "~/.codex/AGENTS.md", "AGENTS.md"],
+  },
+  { id: "cursor", name: "Cursor", files: ["~/.cursor/agent-memory/MEMORY.md", "AGENTS.md"] },
+  { id: "qoder", name: "Qoder (IDE)", dirs: ["~/.qoder-cn/memory", "~/.qoder/memory"] },
+  { id: "workbuddy", name: "WorkBuddy", dirs: ["~/.workbuddy/memory"] },
+];
+
+const MAX_PREVIEW = 256 * 1024;
+
+const stamp = (p: string): { bytes: number; mtime: string } => {
+  const st = statSync(p);
+  return { bytes: st.size, mtime: st.mtime.toISOString() };
+};
+
+/** Flat, deterministic list: `/api/source?i=N` indexes into this, so no client-supplied path is ever read. */
+export function collectSources(): SourceGroup[] {
+  const groups: SourceGroup[] = [];
+  let index = 0;
+  for (const g of NATIVE) {
+    const files: SourceFile[] = [];
+    for (const raw of g.files ?? []) {
+      const real = expand(raw);
+      const exists = existsSync(real);
+      let meta = { bytes: 0, mtime: null as string | null };
+      if (exists) {
+        try {
+          meta = stamp(real);
+        } catch {
+          /* unreadable: show it as an empty row rather than dropping it */
+        }
+      }
+      files.push({ index: index++, label: raw.replace(/^~\//, ""), path: tilde(real), exists, real, ...meta });
+    }
+    for (const raw of g.dirs ?? []) {
+      const real = expand(raw);
+      if (!existsSync(real)) continue;
+      let names: string[] = [];
+      try {
+        names = readdirSync(real).filter((n) => /\.(md|markdown|jsonl|json|txt)$/i.test(n)).sort();
+      } catch {
+        continue;
+      }
+      for (const name of names) {
+        const file = join(real, name);
+        let meta = { bytes: 0, mtime: null as string | null };
+        try {
+          meta = stamp(file);
+        } catch {
+          continue;
+        }
+        files.push({ index: index++, label: name, path: tilde(file), exists: true, real: file, ...meta });
+      }
+    }
+    if (files.length) groups.push({ id: g.id, name: g.name, files });
+  }
+  return groups;
+}
+
+export function readSource(groups: SourceGroup[], i: number): { label: string; path: string; text: string; truncated: boolean } | null {
+  const file = groups.flatMap((g) => g.files).find((f) => f.index === i);
+  if (!file?.real || !file.exists || !existsSync(file.real)) return null;
+  const buf = readFileSync(file.real);
+  const truncated = buf.length > MAX_PREVIEW;
+  return {
+    label: file.label,
+    path: file.path,
+    text: buf.subarray(0, MAX_PREVIEW).toString("utf8"),
+    truncated,
+  };
 }
 
 function json(res: ServerResponse, code: number, body: unknown): void {
@@ -117,6 +220,23 @@ export const PAGE = `<!doctype html>
   .grow { flex: 1; }
   .empty { border: 1px dashed var(--line); border-radius: 12px; padding: 28px; text-align: center; color: var(--dim); }
   .count { font: 12px var(--mono); color: var(--dim); }
+  .tabs { display: flex; gap: 6px; margin: 4px 0 12px; }
+  .tabs button { padding: 5px 12px; font-size: 13px; }
+  .group { border: 1px solid var(--line); border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: var(--panel); }
+  .group > h2 { margin: 0; padding: 9px 14px; font-size: 13px; font-weight: 600;
+                background: var(--panel2); border-bottom: 1px solid var(--line);
+                display: flex; gap: 8px; align-items: center; }
+  .group .files { padding: 5px 0; }
+  .file { display: flex; gap: 10px; padding: 6px 14px; cursor: pointer; font-size: 13px; align-items: baseline; }
+  .file:hover { background: var(--panel2); }
+  .file.missing { opacity: .4; cursor: default; }
+  .file .name { font-family: var(--mono); flex: 1; word-break: break-all; }
+  .file .meta { color: var(--dim); font-size: 11px; white-space: nowrap; }
+  .doc { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); margin-bottom: 12px; overflow: hidden; }
+  .doc > .head { display: flex; gap: 10px; align-items: center; padding: 8px 14px;
+                 border-bottom: 1px solid var(--line); font: 12px var(--mono); color: var(--dim); }
+  .doc pre { margin: 0; padding: 14px; font: 12.5px/1.6 var(--mono); white-space: pre-wrap;
+             word-break: break-word; max-height: 58vh; overflow: auto; color: var(--ink); }
   footer { position: fixed; bottom: 0; left: 0; right: 0; padding: 6px 20px; font-size: 11px; color: var(--dim);
            background: rgba(15,17,21,.9); border-top: 1px solid var(--line); }
 </style>
@@ -145,8 +265,18 @@ export const PAGE = `<!doctype html>
   </div>
 </header>
 <main>
-  <div class="count" id="count"></div>
-  <div id="list"></div>
+  <div class="tabs">
+    <button id="tab-shared" class="on" data-i18n="tabShared">Shared store</button>
+    <button id="tab-native" data-i18n="tabNative">Agent native memory</button>
+  </div>
+  <section id="pane-shared">
+    <div class="count" id="count"></div>
+    <div id="list"></div>
+  </section>
+  <section id="pane-native" hidden>
+    <div class="count" id="native-count"></div>
+    <div id="native"></div>
+  </section>
 </main>
 <footer id="foot">…</footer>
 <script>
@@ -161,7 +291,11 @@ export const PAGE = `<!doctype html>
       active: 'active facts', deleted: 'deleted', global: 'global', project: 'project', sources: 'sources', chars: 'characters',
       of: 'of', rows: 'rows', empty: 'No memory matches. Try another term, or switch the status filter to “Include deleted”.',
       deletedPill: 'deleted', dir: 'data dir', readonly: 'read-only view', updated: 'updated', every: 'refreshes every 5s',
-      copied: 'copied', mins: 'm ago', hours: 'h ago', days: 'd ago', secs: 's ago', lang: '中'
+      copied: 'copied', mins: 'm ago', hours: 'h ago', days: 'd ago', secs: 's ago', lang: '中',
+      tabShared: 'Shared store', tabNative: 'Agent native memory',
+      nativeEmpty: 'No native memory file was found on this machine.',
+      nativeMissing: 'not found', nativeFiles: 'files', nativeClick: 'click a file to read it',
+      nativeTruncated: 'truncated to the first 256 KB', loadFailed: 'could not read that file'
     },
     zh: {
       title: '共享记忆库', subtitle: 'agent-memory-hub · 只读',
@@ -172,11 +306,15 @@ export const PAGE = `<!doctype html>
       active: '条有效记忆', deleted: '条已删除', global: 'global', project: 'project', sources: '个来源', chars: '字符总量',
       of: '/', rows: '条', empty: '没有匹配的记忆。换个关键词，或把状态切到「含已删除」。',
       deletedPill: '已删除', dir: '数据目录', readonly: '只读视图', updated: '更新于', every: '每 5 秒自动刷新',
-      copied: '已复制', mins: ' 分钟前', hours: ' 小时前', days: ' 天前', secs: ' 秒前', lang: 'EN'
+      copied: '已复制', mins: ' 分钟前', hours: ' 小时前', days: ' 天前', secs: ' 秒前', lang: 'EN',
+      tabShared: '共享库', tabNative: '各 agent 原生记忆',
+      nativeEmpty: '这台机器上没找到任何原生记忆文件。',
+      nativeMissing: '未找到', nativeFiles: '个文件', nativeClick: '点文件名读取内容',
+      nativeTruncated: '只显示前 256 KB', loadFailed: '这个文件读不出来'
     }
   };
 
-  var state = { entries: [], query: '', scope: 'all', source: 'all', status: 'active', auto: true, timer: null, lang: 'en' };
+  var state = { entries: [], query: '', scope: 'all', source: 'all', status: 'active', auto: true, timer: null, lang: 'en', tab: 'shared', groups: null };
   function t(k) { return STR[state.lang][k] || STR.en[k] || k; }
 
   function esc(s) {
@@ -243,6 +381,69 @@ export const PAGE = `<!doctype html>
     }).sort(function (a, b) { return String(b.updated_at).localeCompare(String(a.updated_at)); });
   }
 
+  function bytes(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' kB';
+    return (n / 1024 / 1024).toFixed(1) + ' MB';
+  }
+
+  function showTab(name) {
+    state.tab = name;
+    document.getElementById('tab-shared').classList.toggle('on', name === 'shared');
+    document.getElementById('tab-native').classList.toggle('on', name === 'native');
+    document.getElementById('pane-shared').hidden = name !== 'shared';
+    document.getElementById('pane-native').hidden = name !== 'native';
+    if (name === 'native') loadSources();
+  }
+
+  function loadSources() {
+    fetch('/api/sources', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (data) {
+      state.groups = data.groups;
+      renderSources();
+    }).catch(function (err) {
+      document.getElementById('native').innerHTML = '<div class="empty">' + esc(String(err)) + '</div>';
+    });
+  }
+
+  function renderSources() {
+    var box = document.getElementById('native');
+    var groups = state.groups || [];
+    var total = groups.reduce(function (n, g) { return n + g.files.length; }, 0);
+    document.getElementById('native-count').textContent = groups.length + ' agents · ' + total + ' ' + t('nativeFiles') + ' · ' + t('nativeClick');
+    if (!groups.length) {
+      box.innerHTML = '<div class="empty">' + esc(t('nativeEmpty')) + '</div>';
+      return;
+    }
+    box.innerHTML = groups.map(function (g) {
+      var rows = g.files.map(function (f) {
+        var cls = 'file' + (f.exists ? '' : ' missing');
+        var meta = f.exists ? bytes(f.bytes) + ' · ' + ago(f.mtime) : t('nativeMissing');
+        return '<div class="' + cls + '" data-i="' + f.index + '" title="' + esc(f.path) + '">' +
+          '<span class="name">' + esc(f.path) + '</span><span class="meta">' + esc(meta) + '</span></div>';
+      }).join('');
+      return '<div class="group"><h2>' + esc(g.name) + '<span class="meta">' + esc(g.id) + '</span></h2>' +
+        '<div class="files">' + rows + '</div></div>';
+    }).join('');
+  }
+
+  function openSource(i, el) {
+    var box = document.getElementById('native');
+    fetch('/api/source?i=' + i, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (data) {
+      if (data.error) { box.insertAdjacentHTML('afterbegin', '<div class="empty">' + esc(t('loadFailed')) + ': ' + esc(data.error) + '</div>'); return; }
+      var doc = '<div class="doc"><div class="head"><span>' + esc(data.path) + '</span>' +
+        (data.truncated ? '<span class="pill deleted">' + esc(t('nativeTruncated')) + '</span>' : '') +
+        '<span class="grow"></span><button class="close">×</button></div>' +
+        '<pre>' + esc(data.text) + '</pre></div>';
+      var existing = document.getElementById('doc-' + i);
+      if (existing) { existing.remove(); return; }
+      box.insertAdjacentHTML('afterbegin', '<div id="doc-' + i + '">' + doc + '</div>');
+      var close = box.querySelector('#doc-' + i + ' .close');
+      if (close) close.addEventListener('click', function () { var n = document.getElementById('doc-' + i); if (n) n.remove(); });
+    }).catch(function () {
+      box.insertAdjacentHTML('afterbegin', '<div class="empty">' + esc(t('loadFailed')) + '</div>');
+    });
+  }
+
   function applyLang() {
     document.documentElement.lang = state.lang === 'zh' ? 'zh-CN' : 'en';
     document.title = 'agent-memory-hub · ' + t('title');
@@ -252,6 +453,7 @@ export const PAGE = `<!doctype html>
     for (var j = 0; j < ph.length; j++) ph[j].setAttribute('placeholder', t(ph[j].getAttribute('data-i18n-ph')));
     document.getElementById('lang').textContent = t('lang');
     render();
+    renderSources();
   }
 
   function renderStats(all) {
@@ -341,6 +543,12 @@ export const PAGE = `<!doctype html>
     if (state.auto) state.timer = setInterval(load, 5000);
   }
 
+  document.getElementById('tab-shared').addEventListener('click', function () { showTab('shared'); });
+  document.getElementById('tab-native').addEventListener('click', function () { showTab('native'); });
+  document.getElementById('native').addEventListener('click', function (ev) {
+    var row = ev.target && ev.target.closest ? ev.target.closest('.file') : null;
+    if (row && !row.classList.contains('missing')) openSource(row.getAttribute('data-i'));
+  });
   document.getElementById('q').addEventListener('input', function (ev) { state.query = ev.target.value; render(); });
   document.getElementById('scope').addEventListener('change', function (ev) { state.scope = ev.target.value; render(); });
   document.getElementById('source').addEventListener('change', function (ev) { state.source = ev.target.value; render(); });
@@ -406,6 +614,28 @@ export function startWeb(o: WebOptions = {}): Promise<WebHandle> {
           deleted: entries.filter((e) => e.status === "deleted").length,
         },
       });
+      return;
+    }
+    if (url.pathname === "/api/sources") {
+      const groups = collectSources().map((g) => ({
+        ...g,
+        files: g.files.map(({ real: _real, ...rest }) => rest),
+      }));
+      json(res, 200, { groups, adapters: loadAdapters().map((a) => ({ id: a.id, name: a.name, installed: a.detect.some((d) => existsSync(expand(d))) })) });
+      return;
+    }
+    if (url.pathname === "/api/source") {
+      const i = Number(url.searchParams.get("i"));
+      if (!Number.isInteger(i) || i < 0) {
+        json(res, 400, { error: "i must be a non-negative integer from /api/sources" });
+        return;
+      }
+      const found = readSource(collectSources(), i);
+      if (!found) {
+        json(res, 404, { error: "no readable file at that index" });
+        return;
+      }
+      json(res, 200, found);
       return;
     }
     if (url.pathname === "/api/health") {
