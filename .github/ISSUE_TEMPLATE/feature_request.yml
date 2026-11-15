@@ -1,0 +1,29 @@
+name: Feature request
+description: A new adapter, an import source, or a change in how memory is stored
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a **new agent**, the useful details are: where it keeps its instruction file, its MCP registration
+        command (or that it has none), and where its own memory lives. Those three become one JSON file in
+        `adapters/`.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do
+      description: The situation, not the solution you have in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you think should change
+      description: Optional. If it is a new agent, include paths and commands if you know them.
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: I read the "Security model" section of the README (plaintext store, heuristic filtering)
+          required: true

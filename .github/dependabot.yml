@@ -1,0 +1,18 @@
+version: 2
+updates:
+  # the two runtime dependencies: the MCP SDK and zod
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+
+  # keep the actions used by the CI templates current
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci"

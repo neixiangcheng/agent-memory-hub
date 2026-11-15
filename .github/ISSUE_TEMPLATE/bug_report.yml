@@ -1,0 +1,44 @@
+name: Bug report
+description: Something behaved differently from what the README says
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Two things make a report actionable: your OS/Node version, and the
+        exact output of the command that misbehaved (`amh detect` and `amh sync --project …` are the usual suspects).
+        **Do not paste tokens or your memory contents** — redact paths and any text you would not post publicly.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - CLI (detect / add / list / search / forget / sync / mcp-install)
+        - Adapters (a specific agent's paths or registration)
+        - MCP server
+        - DeepSeek Harness bundle (plugins/dsh)
+        - Viewer (amh web)
+        - Import (bullets / prose / sqlite)
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: OS, Node, amh version
+      placeholder: "Windows 11, Node 22.19, agent-memory-hub 0.3.0"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Command you ran, what you expected, what you got. Redacted output is fine.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: detect
+    attributes:
+      label: "`amh detect` output"
+      description: Optional, but it answers most adapter questions in one go.
+      render: shell
