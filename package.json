@@ -17,14 +17,14 @@
     "cli"
   ],
   "license": "MIT",
-  "author": "nigedazhima",
-  "homepage": "https://github.com/nigedazhima/agent-memory-hub#readme",
+  "author": "neixiangcheng",
+  "homepage": "https://github.com/neixiangcheng/agent-memory-hub#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nigedazhima/agent-memory-hub.git"
+    "url": "git+https://github.com/neixiangcheng/agent-memory-hub.git"
   },
   "bugs": {
-    "url": "https://github.com/nigedazhima/agent-memory-hub/issues"
+    "url": "https://github.com/neixiangcheng/agent-memory-hub/issues"
   },
   "type": "module",
   "bin": {

@@ -6,7 +6,7 @@ Everything here has been prepared, nothing here has been published yet. Two dest
 ## 1. GitHub
 
 The repository is already committed on `main` with `origin` set to
-`https://github.com/nigedazhima/agent-memory-hub.git`. Only the remote has to exist.
+`https://github.com/neixiangcheng/agent-memory-hub.git`. Only the remote has to exist.
 
 **With the GitHub CLI:**
 

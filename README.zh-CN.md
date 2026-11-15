@@ -6,10 +6,10 @@ Claude Code、Codex、Cursor、Qoder、WorkBuddy、DeepSeek Harness 各自攒一
 这个项目给它们一份共享存储、一个共享 MCP server、一套"事实往哪写"的约定：你对一个 agent 说过的偏好，
 下一个 agent 开箱就知道。
 
-[![ci](https://github.com/nigedazhima/agent-memory-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/nigedazhima/agent-memory-hub/actions/workflows/ci.yml)
+[![ci](https://github.com/neixiangcheng/agent-memory-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/neixiangcheng/agent-memory-hub/actions/workflows/ci.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-![只读浏览站点](https://raw.githubusercontent.com/nigedazhima/agent-memory-hub/main/docs/screenshots/viewer-zh.png)
+![只读浏览站点](https://raw.githubusercontent.com/neixiangcheng/agent-memory-hub/main/docs/screenshots/viewer-zh.png)
 
 > 截图用的是 [`examples/demo`](examples/demo) 里的假数据。界面中英双语，跟随浏览器语言，右上角可切换。
 
@@ -171,7 +171,7 @@ powershell -File scripts\web-daemon.ps1 uninstall   # 删掉自启动项
 ## 开发
 
 ```bash
-git clone https://github.com/nigedazhima/agent-memory-hub.git
+git clone https://github.com/neixiangcheng/agent-memory-hub.git
 cd agent-memory-hub
 npm install
 npm test            # 14 个测试，不需要网络

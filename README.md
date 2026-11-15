@@ -6,11 +6,11 @@ Claude Code, Codex, Cursor, Qoder, WorkBuddy and DeepSeek Harness each keep thei
 facts — and none of them can see the others'. This gives them a shared store, a shared MCP server, and
 a shared convention for where facts go, so a preference you told one agent is available to the next one.
 
-[![ci](https://github.com/nigedazhima/agent-memory-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/nigedazhima/agent-memory-hub/actions/workflows/ci.yml)
+[![ci](https://github.com/neixiangcheng/agent-memory-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/neixiangcheng/agent-memory-hub/actions/workflows/ci.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![node](https://img.shields.io/badge/node-%E2%89%A522.19-brightgreen.svg)](package.json)
 
-![the read-only viewer](https://raw.githubusercontent.com/nigedazhima/agent-memory-hub/main/docs/screenshots/viewer.png)
+![the read-only viewer](https://raw.githubusercontent.com/neixiangcheng/agent-memory-hub/main/docs/screenshots/viewer.png)
 
 > Screenshots use the fake store in [`examples/demo`](examples/demo). The UI is English or Chinese,
 > following your browser language; the toggle is in the corner.
@@ -180,7 +180,7 @@ user unit wrapping `amh web` does the same job.
 ## Development
 
 ```bash
-git clone https://github.com/nigedazhima/agent-memory-hub.git
+git clone https://github.com/neixiangcheng/agent-memory-hub.git
 cd agent-memory-hub
 npm install
 npm test            # 14 tests, no network
