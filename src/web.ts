@@ -11,6 +11,8 @@ export interface WebOptions {
   port?: number;
   host?: string;
   store?: Store;
+  /** keep the startup banner quiet (tests) */
+  quiet?: boolean;
 }
 
 export interface WebHandle {
@@ -416,10 +418,15 @@ export function startWeb(o: WebOptions = {}): Promise<WebHandle> {
   return new Promise<WebHandle>((resolve, reject) => {
     server.once("error", reject);
     server.listen(port, host, () => {
-      const url = `http://${host === "0.0.0.0" ? "127.0.0.1" : host}:${port}/`;
-      console.log(`agent-memory-hub viewer: ${url}`);
-      console.log(`store: ${store.file}`);
-      console.log("read-only · Ctrl+C to stop");
+      // port 0 asks the OS for a free one; report the real port, not the 0 that was requested.
+      const addr = server.address();
+      const actual = typeof addr === "object" && addr ? addr.port : port;
+      const url = `http://${host === "0.0.0.0" ? "127.0.0.1" : host}:${actual}/`;
+      if (!o.quiet) {
+        console.log(`agent-memory-hub viewer: ${url}`);
+        console.log(`store: ${store.file}`);
+        console.log("read-only · Ctrl+C to stop");
+      }
       resolve({
         url,
         close: () =>

@@ -35,6 +35,8 @@ First version that is meant to be installed by someone who is not the author.
 - `defaultServerPath()` and the dsh tools' CLI lookup resolve to `dist/` when running from a built
   package and to `src/` in a checkout.
 - SQLite imports report a readable error instead of a stack trace on Node builds without `node:sqlite`.
+- `amh web --port 0` reported `:0` instead of the port the OS actually picked (tests now run the server
+  on an ephemeral port and assert the page, the JSON, the 405 on writes and live store reloads).
 
 ### Known limits
 
