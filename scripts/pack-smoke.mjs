@@ -9,9 +9,28 @@ import { dirname, join } from "node:path";
 
 const repo = process.cwd();
 const work = mkdtempSync(join(tmpdir(), "amh-pack-"));
-// npm ships with node; calling its JS entry avoids the .cmd shim problem on Windows.
-const npmCli = join(dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js");
-const npm = (args, cwd) => execFileSync(process.execPath, [npmCli, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
+
+/**
+ * npm ships next to node, but the layout differs: Windows keeps it in
+ * `<node>/node_modules/npm/bin/npm-cli.js`, Linux/macOS in `<node>/../lib/node_modules/...`.
+ * Calling the JS entry avoids the `.cmd` shim on Windows; `npm_execpath` covers `npm run` callers.
+ */
+function npmEntry() {
+  const fromEnv = process.env.npm_execpath;
+  if (fromEnv && fromEnv.includes("npm-cli.js") && existsSync(fromEnv)) return fromEnv;
+  const bin = dirname(process.execPath);
+  const candidates = [
+    join(bin, "node_modules", "npm", "bin", "npm-cli.js"),
+    join(bin, "..", "lib", "node_modules", "npm", "bin", "npm-cli.js"),
+  ];
+  return candidates.find((p) => existsSync(p)) ?? null;
+}
+
+const npmCli = npmEntry();
+const npm = (args, cwd) => {
+  if (!npmCli) return execFileSync("npm", args, { cwd, encoding: "utf8", stdio: "pipe", shell: process.platform === "win32" });
+  return execFileSync(process.execPath, [npmCli, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
+};
 
 const log = (msg) => console.log(`• ${msg}`);
 let failed = false;
