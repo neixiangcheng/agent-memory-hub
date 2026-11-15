@@ -82,3 +82,25 @@ git commit -am "chore(release): 0.3.1"
 git tag -a v0.3.1 -m "0.3.1"
 git push --follow-tags
 ```
+
+## 5. Local environment notes (the machine this was built on)
+
+Both of these fail in a confusing way, so they are written down here.
+
+**The proxy is configured but not always running.** `git config --global http.proxy` and `HTTPS_PROXY` both
+point at `socks5://127.0.0.1:10808`. When that proxy is down, `git` and PowerShell fail at connect time
+("Failed to connect to github.com:443 over proxy 127.0.0.1") even though a direct connection to
+`github.com:443` works. Override it for one command rather than rewriting the global config — the proxy may
+be wanted again tomorrow:
+
+```bash
+git -c http.proxy= -c https.proxy= push -u origin main
+```
+
+**No GitHub credentials are stored.** `cmdkey /list` has only a Copilot app entry; there is no
+`~/.git-credentials`, no `~/.config/gh/hosts.yml`, and no token in the environment. Git Credential Manager is
+installed (`credential.helper=manager`) but needs an interactive console: a push started from a
+non-interactive agent shell hangs on `git-credential-manager` with no browser window and no prompt. Run the
+first push yourself in a normal terminal — GCM opens the browser once and stores the credential for later
+pushes.
+
