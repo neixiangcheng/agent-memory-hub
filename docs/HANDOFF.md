@@ -1,5 +1,17 @@
 # 给 agent 的任务说明：验证并落地 agent-memory-hub
 
+> **状态：本文档已执行完毕（2026-11-15）。** 结论见下，原始步骤保留作对照——如果你要在一个新环境里
+> 重做一遍，直接照着走即可。
+>
+> - `npm test` 14/14，`npm run typecheck` 干净（项目第一次跑 tsc 就没有类型错误）。
+> - `src/mcp-server.ts` 连了真实 MCP SDK：4 个工具都在，写入→搜索→列表能读回同一条，来源记为 `mcp:<client>`。
+> - `plugins/dsh` 在真实 dsh 里注入成功：`--dump-config` 出现 `dsh-amh-memory` 层，headless 会话的模型
+>   逐字复述了 `## Shared memory` 下的条目，`{{not_a_var}}` 没有破坏渲染，祖先 project scope 也能匹配。
+> - 七个适配器的路径与注册语法都在本机核对过；Codex 的 `codex mcp add` 存在，不需要 toml 模式。
+> - 新增（原文档没有的部分）：`amh web` 只读浏览站点、`--mode prose` 段落导入、`--sqlite` 导入。
+> - 已知未解：`memory_write` 在 headless 会话里不过审批；Qoder 与 WorkBuddy 只能手动注册 MCP；
+>   Grok Build 未安装无法核对。
+
 你（agent）拿到的是一个已经写好、核心逻辑测试通过、但**没有在真实环境里验证过**的项目。
 你的任务是在用户的机器上把它验证、修正并接入各个 agent，然后汇报结果。
 先读 `README.md` 了解设计，再按本文件的步骤执行。

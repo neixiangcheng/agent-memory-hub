@@ -78,6 +78,22 @@ already contains the equivalent): *call `memory_search` before starting a task*.
 `amh detect` prints the open questions for each adapter; `adapters/*.json` is the single source of truth
 for paths, and `~/.agent-memory-hub/adapters/*.json` overrides them without forking the repo.
 
+```
+$ amh detect
+[x] claude-code  Claude Code
+[x] codex        Codex CLI
+[x] cursor       Cursor
+[x] dsh          DeepSeek Harness (dsh)  (plugin)
+[ ] grok-build   Grok Build (xAI)
+[x] qoder        Qoder (IDE)
+[x] workbuddy    WorkBuddy
+```
+
+`[x]` means detected on this machine, `[ ]` means not installed; each line is followed by `verify:` notes
+that spell out what was actually checked and what still needs a human.
+
+Releasing (GitHub, npm, screenshots, version bumps) is documented in [docs/PUBLISHING.md](docs/PUBLISHING.md).
+
 ## Commands
 
 ```

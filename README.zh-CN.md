@@ -71,6 +71,22 @@ amh web                          # http://127.0.0.1:7788/ 只读浏览
 `amh detect` 会把每个适配器待确认的点打出来；路径的唯一真源是 `adapters/*.json`，
 `~/.agent-memory-hub/adapters/*.json` 可以覆盖，不用改仓库。
 
+```
+$ amh detect
+[x] claude-code  Claude Code
+[x] codex        Codex CLI
+[x] cursor       Cursor
+[x] dsh          DeepSeek Harness (dsh)  (plugin)
+[ ] grok-build   Grok Build (xAI)
+[x] qoder        Qoder (IDE)
+[x] workbuddy    WorkBuddy
+```
+
+`[x]` 是这台机器上探测到了，`[ ]` 是没装；每行后面跟着 `verify:` 说明，写清哪些验证过、
+哪些还要人来确认。
+
+发布相关（GitHub、npm、截图、版本号）都在 [docs/PUBLISHING.md](docs/PUBLISHING.md)。
+
 ## 命令
 
 ```
