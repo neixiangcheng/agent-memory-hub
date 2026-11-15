@@ -52,6 +52,8 @@
     "amh": "node src/cli.ts",
     "serve": "node src/mcp-server.ts",
     "web": "node src/cli.ts web",
+    "desktop": "node src/cli.ts desktop",
+    "desktop:electron": "node scripts/launch-desktop.mjs",
     "test": "node --test \"test/*.test.ts\"",
     "typecheck": "tsc --noEmit",
     "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
@@ -64,6 +66,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "electron": "^45.3.2",
     "typescript": "^5.8.0"
   }
 }

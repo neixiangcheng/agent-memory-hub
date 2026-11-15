@@ -162,6 +162,24 @@ Two tabs:
   (`/api/source?i=N`), so no client-supplied path is ever opened, and absolute paths are stripped from the
   JSON — the browser only ever sees the `~/…` form.
 
+### A real window instead of a browser tab
+
+```bash
+amh desktop              # own window, no address bar, no tabs, ephemeral port
+amh web --open           # or: start the server and hand the URL to your default browser
+```
+
+`amh desktop` runs the same page in Chromium's app mode (`--app=URL`) with a private profile under
+`~/.agent-memory-hub/window`. That profile matters: it keeps the window away from your normal browser
+session, its tabs and its proxy extensions — a common reason `localhost` "does not open".
+
+On Windows, `scripts\create-shortcut.ps1` puts a double-clickable shortcut on the desktop that opens the
+window (no admin rights, nothing in the registry).
+
+There is also an Electron shell (`npm run desktop:electron`) for packaging a standalone binary, but it is
+untested here: `electron@45` exits immediately on this machine, and any environment that exports
+`ELECTRON_RUN_AS_NODE=1` makes `require("electron")` return a path instead of the app API.
+
 It binds `127.0.0.1` by default. `--host 0.0.0.0` is there for phones on your LAN; the content is your
 raw memory text, so think before exposing it.
 

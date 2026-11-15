@@ -2,6 +2,7 @@
 // Same JSONL the agents read - no database, no build step, no dependencies. Nothing here writes:
 // the store only ever grows through `amh add` / `memory_write`.
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { spawn } from "node:child_process";
 import { dirname } from "node:path";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -16,6 +17,8 @@ export interface WebOptions {
   store?: Store;
   /** keep the startup banner quiet (tests) */
   quiet?: boolean;
+  /** open the default browser once the server is listening */
+  open?: boolean;
 }
 
 export interface WebHandle {
@@ -586,6 +589,22 @@ export const PAGE = `<!doctype html>
 </body>
 </html>`;
 
+/** Open the default browser. `localhost` rather than 127.0.0.1: some proxy setups bypass only the former. */
+export function openBrowser(url: string): boolean {
+  const [cmd, args] =
+    process.platform === "win32"
+      ? ["cmd.exe", ["/c", "start", "", url]]
+      : process.platform === "darwin"
+        ? ["open", [url]]
+        : ["xdg-open", [url]];
+  try {
+    spawn(cmd, args, { detached: true, stdio: "ignore" }).unref();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function startWeb(o: WebOptions = {}): Promise<WebHandle> {
   const store = o.store ?? new Store();
   const port = o.port ?? Number(process.env.AMH_WEB_PORT ?? 7788);
@@ -657,6 +676,7 @@ export function startWeb(o: WebOptions = {}): Promise<WebHandle> {
         console.log(`store: ${store.file}`);
         console.log("read-only · Ctrl+C to stop");
       }
+      if (o.open) openBrowser(`http://localhost:${actual}/`);
       resolve({
         url,
         close: () =>

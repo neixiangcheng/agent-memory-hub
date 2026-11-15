@@ -14,7 +14,7 @@ import {
   type ImportRow,
 } from "./engine.ts";
 
-const BOOLEAN_FLAGS = new Set(["apply", "force", "create", "global"]);
+const BOOLEAN_FLAGS = new Set(["apply", "force", "create", "global", "open"]);
 
 function parse(argv: string[]) {
   const pos: string[] = [];
@@ -46,7 +46,8 @@ const HELP = `amh - shared memory across local AI agents
   amh sync [--adapter a,b] [--project DIR] [--apply] [--force] [--create]
   amh mcp-install [--adapter a,b] [--apply]
   amh serve                          run the MCP server on stdio
-  amh web [--port 7788] [--host 127.0.0.1]   read-only browser view of the store
+  amh web [--port 7788] [--host 127.0.0.1] [--open]   read-only browser view of the store
+  amh desktop [--port N]              same view in its own app window (Edge/Chrome --app mode)
 
 Everything that writes is a dry run unless --apply is given.`;
 
@@ -190,7 +191,13 @@ switch (cmd) {
     await startWeb({
       port: str("port") ? Number(str("port")) : undefined,
       host: str("host"),
+      open: flags["open"] === true,
     });
+    break;
+  }
+  case "desktop": {
+    const { runDesktop } = await import("./desktop.ts");
+    await runDesktop({ port: str("port") ? Number(str("port")) : undefined });
     break;
   }
   default:
